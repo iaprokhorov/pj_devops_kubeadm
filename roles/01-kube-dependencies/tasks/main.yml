@@ -1,0 +1,48 @@
+---
+# tasks file for 01-kube-dependencies
+# hosts: all
+
+- name: Update sysctl settings for Kubernetes networking
+  shell: |
+    cat >>/etc/sysctl.d/kubernetes.conf<<EOF
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+    EOF
+    sysctl --system
+  become_user: ubuntu
+
+- name: install Docker
+  shell: |
+    apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    apt update
+    apt install -y docker-ce=5:19.03.10~3-0~ubuntu-focal containerd.io
+  become_user: ubuntu
+
+- name: install APT Transport HTTPS
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: add Kubernetes apt-key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: add Kubernetes' APT repository
+  apt_repository:
+   repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+   state: present
+   filename: 'kubernetes'
+
+- name: install kubelet
+  apt:
+    name: kubelet=1.18.5-00
+    state: present
+    update_cache: true
+
+- name: install kubeadm
+  apt:
+    name: kubeadm=1.18.5-00
+    state: present

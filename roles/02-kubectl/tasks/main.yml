@@ -1,0 +1,9 @@
+---
+# tasks file for 02-kubectl
+# hosts: master
+
+- name: install kubectl
+  apt:
+    name: kubectl=1.18.5-00
+    state: present
+    force: yes

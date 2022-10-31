@@ -1,0 +1,50 @@
+---
+#srv-soft-install.yml
+
+- name: Install dependencies on hosts
+  hosts: all
+  connection: ssh
+  gather_facts: False
+  become: true
+  tasks:
+  roles:
+    - { role: 01-kube-dependencies }
+
+- name: Install kubectl on master
+  hosts: master
+  connection: ssh
+  gather_facts: False
+  become: true
+  tasks:
+  roles:
+    - { role: 02-kubectl }
+
+- name: Deploy master node
+  hosts: master
+  connection: ssh
+  gather_facts: False
+  become: true
+  tasks:
+  roles:
+    - { role: 03-master }
+
+- name: Configure worker node on master host
+  hosts: master
+  connection: ssh
+  gather_facts: False
+  become: true
+  tasks:
+  roles:
+    - { role: 04-workers-add-on-master }
+
+- name: Configure worker node on worker host
+  hosts: app
+  connection: ssh
+  gather_facts: False
+  become: true
+  tasks:
+  roles:
+    - { role: 05-workers-add-on-workers }
+
+#cd /mnt/c/Projects/pj-devops/pj_devops_kubeadm/
+#ansible-playbook -i inventory.ini cluster.yml -vv
